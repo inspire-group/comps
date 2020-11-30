@@ -1,0 +1,4 @@
+[submodule "boringtun-docker"]
+	path = boringtun-docker
+	url = https://github.com/m0namon/boringtun-docker
+	branch = quic

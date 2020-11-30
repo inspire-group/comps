@@ -90,8 +90,7 @@ services:
 
   wg_client:
     privileged: true
-    image: wg_client:latest
-    container_name: wg_client
+    build: ./boringtun-docker
     cap_add:
       - NET_ADMIN
     devices:
@@ -111,6 +110,7 @@ services:
     command: -c "wg-quick up wg1_client && sleep infinity"
     networks:
      - wg1_network
+     - server_network
      - wg2_network
   
   # wg_client:
@@ -136,15 +136,7 @@ services:
 
   server:
     container_name: server
-    image: server:latest
-    expose:
-      - 443
-    command: './run'
-    volumes:
-      # - ./server/caddy:/etc/caddy
-      # - ./server/site:/srv
-      # - ./server/data:/data
-      # - ./server/config:/config
+    build: ./server
     networks:
       - server_network
    
