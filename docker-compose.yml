@@ -23,10 +23,7 @@ services:
       WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
     entrypoint: /bin/bash
     command: -c "wg-quick up wg1 && sleep infinity"
-    networks:
-      - wg1_network
-      - server_network
-  
+
   wg2:
     privileged: true
     image: frankpetrilli/boringtun
@@ -50,47 +47,11 @@ services:
       WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
     entrypoint: /bin/bash
     command: -c "wg-quick up wg2 && sleep infinity"
-    networks:
-     - wg2_network
-     - server_network
-
-  # wg1:
-  #   image: wg:latest
-  #   container_name: wg1
-    # volumes:
-    # - /etc/wireguard:/etc/wireguard
-    # - /lib/modules:/lib/modules
-    # networks:
-    # - wg1_network
-    # - server_network
-    # expose:
-    # - 1194/udp
-    # cap_add:
-    # - NET_ADMIN
-    # - SYS_MODULE
-    # environment:
-    # - HOST=1
-  
-  # wg2:
-  #   image: wg:latest
-  #   container_name: wg2
-    # volumes:
-    # - /etc/wireguard:/etc/wireguard
-    # - /lib/modules:/lib/modules
-    # networks:
-    # - wg2_network
-    # - server_network
-    # expose:
-    # - 1194/udp
-    # cap_add:
-    # - NET_ADMIN
-    # - SYS_MODULE
-    # environment:
-    # - HOST=2
 
   wg_client:
     privileged: true
     build: ./boringtun-docker
+    container_name: wg_client
     cap_add:
       - NET_ADMIN
     devices:
@@ -108,59 +69,7 @@ services:
       WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
     entrypoint: /bin/bash
     command: -c "wg-quick up wg1_client && sleep infinity"
-    networks:
-     - wg1_network
-     - server_network
-     - wg2_network
-  
-  # wg_client:
-  #   image: wg:latest
-  #   container_name: wg_client
-
-    # volumes:
-    # - /etc/wireguard:/etc/wireguard
-    # - /lib/modules:/lib/modules
-    # networks:
-    # - wg1_network
-    # - wg2_network
-    # - server_network
-    # cap_add:
-    # - NET_ADMIN
-    # - SYS_MODULE
-    # environment:
-    # - HOST=1_client
-    # depends_on:
-    # - wg1
-    # - wg2
-    # network_mode: "service:wg1"
 
   server:
     container_name: server
     build: ./server
-    networks:
-      - server_network
-   
-networks:
-  wg1_network:
-    name: wg1_network
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.1.0.0/16
-    # internal: true
-
-  wg2_network:
-    name: wg2_network
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.2.0.0/16
-    # internal: true
-  
-  server_network:
-    name: server_network
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.3.0.0/16
-    # internal: true

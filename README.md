@@ -1,20 +1,13 @@
 # quic-migrate
 exploring intentional connection migration over quic
 
-## Building & running the curl-quic dockerfile
+Remember to pull submodules:
 
 ```
-cd docker
-docker build . -t qurl
+git submodule update --init --recursive
 ```
 
-Running a standalone command:
+## Running tests
 
-```
-docker run --rm qurl --http3 https://quic.tech:8443
-```
+Dependencies are docker and docker-compose.
 
-Get shell:
-```
-docker run --rm -it --entrypoint /bin/bash qurl
-```
