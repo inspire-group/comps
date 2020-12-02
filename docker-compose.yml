@@ -23,6 +23,9 @@ services:
       WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
     entrypoint: /bin/bash
     command: -c "wg-quick up wg1 && sleep infinity"
+    networks:
+      - server_network
+      - wg1_network
 
   wg2:
     privileged: true
@@ -47,6 +50,9 @@ services:
       WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
     entrypoint: /bin/bash
     command: -c "wg-quick up wg2 && sleep infinity"
+    networks:
+      - server_network
+      - wg2_network
 
   wg_client:
     privileged: true
@@ -69,7 +75,36 @@ services:
       WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
     entrypoint: /bin/bash
     command: -c "wg-quick up wg1_client && sleep infinity"
+    networks:
+      - wg1_network
+      - wg2_network
 
   server:
     container_name: server
     build: ./server
+    networks:
+      server_network:
+        ipv4_address: 10.3.0.4
+
+networks:
+  wg1_network:
+    name: wg1_network
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.1.0.0/16
+    # internal: true
+  wg2_network:
+    name: wg2_network
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.2.0.0/16
+    # internal: true
+  
+  server_network:
+    name: server_network
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.3.0.0/16
