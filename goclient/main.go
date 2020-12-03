@@ -34,26 +34,26 @@ func main() {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(len(urls)*(*nRequests))
+	wg.Add(len(urls))
 	for _, addr := range urls {
-    for i := 0; i < *nRequests; i++ {
-		  log.Printf("GET %s", addr)
-		  go func(addr string) {
-		  	rsp, err := hclient.Get(addr)
-		  	if err != nil {
-		  		log.Fatal(err)
-		  	}
-		  	log.Printf("Got response for %s: %#v", addr, rsp)
-		  	body := &bytes.Buffer{}
-		  	_, err = io.Copy(body, rsp.Body)
-		  	if err != nil {
-		  		log.Fatal(err)
-		  	}
-		  	log.Printf("Request Body:")
-  	  	log.Printf("%s", body.Bytes())
-		  	wg.Done()
-		  }(addr)
-    }
+    go func(addr string) {
+      for i := 0; i < *nRequests; i++ {
+		    log.Printf("GET %s", addr)
+		    	rsp, err := hclient.Get(addr)
+		    	if err != nil {
+		    		log.Fatal(err)
+		    	}
+		    	log.Printf("Got response for %s: %#v", addr, rsp)
+		    	body := &bytes.Buffer{}
+		    	_, err = io.Copy(body, rsp.Body)
+		    	if err != nil {
+		    		log.Fatal(err)
+		    	}
+		    	log.Printf("Request Body:")
+  	    	log.Printf("%s", body.Bytes())
+      }
+      wg.Done()
+    }(addr)
 	}
 	wg.Wait()
 }
