@@ -1,8 +1,10 @@
 #!/bin/bash
 while true
 do
-wg setconf wg0 /etc/wireguard/wg1_client.conf
+ip route add default dev wg2 table 51821
+#wg setconf wg0 /etc/wireguard/wg1_client.conf
 sleep $1
-wg setconf wg0 /etc/wireguard/wg2_client.conf
+ip route delete default dev wg2 table 51821
+#wg setconf wg0 /etc/wireguard/wg2_client.conf
 sleep $1
 done
