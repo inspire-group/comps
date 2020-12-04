@@ -19,4 +19,4 @@ wg set wg2 fwmark 51821
 ip -4 rule add not fwmark 51821 table 51821
 
 ip -4 rule add table main suppress_prefixlength 0
-sysctl -q net.ipv4.conf.all.src_valid_mark=1
+# sysctl -q net.ipv4.conf.all.src_valid_mark=1
