@@ -59,11 +59,10 @@ RUN \
 
 WORKDIR /app
 
-COPY client.sh /app/
 COPY server.sh /app/
 
 COPY tls /site/tls
 COPY example.com /site/example.com
 
 
-CMD ["/bin/bash"]
+CMD ["/app/server.sh"]

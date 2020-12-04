@@ -56,7 +56,7 @@ services:
 
   wg_client:
     privileged: true
-    build: ./goclient
+    build: ./boringtun-docker
     container_name: wg_client
     cap_add:
       - NET_ADMIN
@@ -64,6 +64,8 @@ services:
       - "/dev/net/tun:/dev/net/tun"
     volumes:
       - ./wg_client:/etc/wireguard/
+      - ./chromium-quic:/app/
+      - /home/mona/chromium/src:/src
     logging:
       driver: "json-file"
       options:
@@ -76,7 +78,7 @@ services:
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     entrypoint: /bin/bash
-    command: -c "./setup.sh && sleep infinity"
+    command: -c "sleep infinity"
     extra_hosts:
       server: 10.3.0.4
     networks:
@@ -85,7 +87,9 @@ services:
 
   server:
     container_name: server
-    build: ./server
+    build: ./chromium-quic
+    volumes:
+      - /home/mona/chromium/src:/src
     networks:
       server_network:
         ipv4_address: 10.3.0.4
