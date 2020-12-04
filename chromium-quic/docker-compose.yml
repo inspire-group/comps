@@ -1,0 +1,18 @@
+
+version: '3.7'
+services:
+  client:
+    build: .
+    container_name: quic_client
+    volumes:
+     - /home/mona/chromium/src:/src
+    command: sleep infinity
+  server:
+    build: .
+    container_name: quic_server
+    ports:
+      - "6121:6121"
+    volumes:
+     - /home/mona/chromium/src:/src
+    command: sleep infinity
+  

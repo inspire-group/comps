@@ -73,6 +73,8 @@ services:
       INTERFACE_NAME: "wg0"
       WG_SUDO: "1"
       WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
     entrypoint: /bin/bash
     command: -c "./setup.sh && sleep infinity"
     extra_hosts:
