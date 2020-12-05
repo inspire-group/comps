@@ -58,6 +58,8 @@ services:
     privileged: true
     build: ./boringtun-docker
     container_name: wg_client
+    depends_on:
+      - server
     cap_add:
       - NET_ADMIN
     devices:
@@ -65,7 +67,7 @@ services:
     volumes:
       - ./wg_client:/etc/wireguard/
       - ./chromium-quic:/app/
-      - /home/mona/chromium/src:/src
+      - ${CHROMIUM_SRC_DIR:?Must set chromium source directory}:/src
     logging:
       driver: "json-file"
       options:
@@ -78,7 +80,7 @@ services:
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     entrypoint: /bin/bash
-    command: -c "sleep infinity"
+    command: -c "/etc/wireguard/build-client.sh && /etc/wireguard/setup.sh && sleep infinity"
     extra_hosts:
       server: 10.3.0.4
     networks:
@@ -89,7 +91,7 @@ services:
     container_name: server
     build: ./chromium-quic
     volumes:
-      - /home/mona/chromium/src:/src
+      - ${CHROMIUM_SRC_DIR:?Must set chromium source directory}:/src
     networks:
       server_network:
         ipv4_address: 10.3.0.4

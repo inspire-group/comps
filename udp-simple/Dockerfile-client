@@ -1,9 +1,0 @@
-FROM frankpetrilli/boringtun:latest
-
-RUN apt-get update && apt-get install -y --no-install-recommends python
-
-WORKDIR /etc/wireguard/
-COPY client.sh /app/client.sh
-
-CMD ["/bin/sh"]
-
