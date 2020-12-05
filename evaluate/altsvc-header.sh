@@ -1,3 +1,3 @@
 #!/bin/bash
 
-curl https://$1 -v -L -s 2>&1 | grep Alt-Svc
+echo "$1:$(curl https://$1 -v -L -s 2>&1 | grep -i Alt-Svc)"
