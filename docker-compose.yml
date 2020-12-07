@@ -1,5 +1,13 @@
 version: '3.7'
 services:
+  chrome:
+    image: selenium/standalone-chrome:3.141.59-yttrium
+    container_name: qhrome
+    cap_add:
+      - NET_ADMIN
+    volumes: 
+      - /dev/shm:/dev/shm
+    network_mode: "service:wg_client"
   wg1:
     privileged: true
     image: frankpetrilli/boringtun
@@ -58,6 +66,8 @@ services:
     privileged: true
     build: ./boringtun-docker
     container_name: wg_client
+    ports:
+      - "4444:4444"
     depends_on:
       - server
     cap_add:
@@ -79,13 +89,17 @@ services:
       WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv4.ip_forward=1
+      - net.ipv4.ip_nonlocal_bind=1
     entrypoint: /bin/bash
     command: -c "/etc/wireguard/build-client.sh && /etc/wireguard/setup.sh && sleep infinity"
     extra_hosts:
       server: 10.3.0.4
     networks:
-      - wg1_network
-      - wg2_network
+      wg1_network:
+      wg2_network:
+      #client_network:
+      #  ipv4_address: 10.4.0.3
 
   server:
     container_name: server
@@ -103,18 +117,21 @@ networks:
       driver: default
       config:
         - subnet: 10.1.0.0/16
-    # internal: true
   wg2_network:
     name: wg2_network
     ipam:
       driver: default
       config:
         - subnet: 10.2.0.0/16
-    # internal: true
-  
   server_network:
     name: server_network
     ipam:
       driver: default
       config:
         - subnet: 10.3.0.0/16
+  client_network:
+    name: client_network
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.4.0.0/16

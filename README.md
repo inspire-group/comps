@@ -39,7 +39,10 @@ Running the following:
 ```
 /src/out/Debug/quic_client --host=server --port=6121 --disable_certificate_verification https://www.example.org
 ```
-should work in the `wg_client` container. If not, something is wrong with th
+should work in the `wg_client` container.
+
+### Testing a headless browser
+After running dc up, a remote webdriver instance that supports QUIC traffic should be opened on your host machine at port 4444. You can run `selenium/open_website.py` for instance in order to fetch the remote page for `https://www.google.com`, or run your own selenium code and capture the relevant traces on wg_client, wg1, or wg2.
 
 
 
