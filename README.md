@@ -35,15 +35,18 @@ to bring up the network. The first run will take a little bit of time as the ser
 It's a hassle to build (especially into a Docker container) since it requires the entire Chromium source and build chain, but it is the most mature QUIC library that supports connection migration.
 
 ### Testing migration
-Running the following:
+The script for changing the default kernel routing path should be mounted in the `wg_client` container at `/etc/wireguard/migrate.sh`. It takes just one argument-- the amount of time to sleep between migrations.
+
+For instance, run `/etc/wireguard/migrate.sh 0.1 &` to switch network interfaces every 100ms (or 0.1s).
+
+Then, running the following:
 ```
 /src/out/Debug/quic_client --host=server --port=6121 --disable_certificate_verification https://www.example.org
 ```
-should work in the `wg_client` container.
+should work in the `wg_client` container. You can run `tcpdump` on any of the containers to capture the result-- we prefer running at the server to capture traffic coming in from both IP addresses.
+
+![demo of quic migration working in action](quic-migrate-demo.gif)
 
 ### Testing a headless browser
 After running dc up, a remote webdriver instance that supports QUIC traffic should be opened on your host machine at port 4444. You can run `selenium/open_website.py www.google.com` for instance in order to fetch the remote page for `https://www.google.com` (or any other QUIC-supporting website), or run your own selenium code and capture the relevant traces on wg_client, wg1, or wg2.
-
-
-
 
