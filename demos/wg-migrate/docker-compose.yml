@@ -1,0 +1,93 @@
+version: "3.7"
+
+services:
+  wgclient:
+    privileged: true
+    container_name: wgclient
+    image: frankpetrilli/boringtun
+    cap_add:
+      - NET_ADMIN
+    expose:
+      - 587/udp
+    devices:
+      - "/dev/net/tun:/dev/net/tun"
+    volumes:
+      - ./wg_client:/etc/wireguard/
+    environment:
+      INTERFACE_NAME: "wg1"
+      WG_SUDO: "1"
+      WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
+    entrypoint: /bin/bash
+    command: -c "/etc/wireguard/setup.sh && sleep infinity"
+  wgnet1:
+    privileged: true
+    image: frankpetrilli/boringtun
+    container_name: wgnet1
+    cap_add:
+      - NET_ADMIN
+    expose:
+      - 587/udp
+    devices:
+      - "/dev/net/tun:/dev/net/tun"
+    volumes:
+      - ./wgnet1:/etc/wireguard/
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "400k"
+        max-file: "20"
+    environment:
+      INTERFACE_NAME: "wg0"
+      WG_SUDO: "1"
+      WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
+    entrypoint: /bin/bash
+    command: -c "wg-quick up wg1 && sleep infinity"
+
+  wgnet2:
+    privileged: true
+    image: frankpetrilli/boringtun
+    container_name: wgnet2
+    cap_add:
+      - NET_ADMIN
+    expose:
+      - 587/udp
+    devices:
+      - "/dev/net/tun:/dev/net/tun"
+    volumes:
+      - ./wgnet2:/etc/wireguard/
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "400k"
+        max-file: "20"
+    environment:
+      INTERFACE_NAME: "wg0"
+      WG_SUDO: "1"
+      WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
+    entrypoint: /bin/bash
+    command: -c "wg-quick up wg2 && sleep infinity"
+
+  wgserver:
+    privileged: true
+    image: frankpetrilli/boringtun
+    container_name: wgserver
+    cap_add:
+      - NET_ADMIN
+    expose:
+      - 587/udp
+    devices:
+      - "/dev/net/tun:/dev/net/tun"
+    volumes:
+      - ./wg0:/etc/wireguard/
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "400k"
+        max-file: "20"
+    environment:
+      INTERFACE_NAME: "wg0"
+      WG_SUDO: "1"
+      WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
+    entrypoint: /bin/bash
+    command: -c "wg-quick up wg0 && sleep infinity"
+
