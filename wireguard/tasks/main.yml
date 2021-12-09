@@ -1,0 +1,57 @@
+---
+
+- name: Gather instance facts
+  setup:
+
+- include_tasks:
+    file: "install.yml"
+    apply:
+      tags:
+        - wg-install
+  tags:
+    - wg-install
+
+- name: Enable WireGuard kernel module
+  modprobe:
+    name: wireguard
+    state: present
+  register: wireguard__register_module_enabled
+  until: wireguard__register_module_enabled is succeeded
+  retries: 10
+  delay: 10
+  failed_when: wireguard__register_module_enabled is failure
+  tags:
+    - wg-install
+
+- include_tasks:
+    file: "generate_keys.yml"
+  tags:
+    - wg-generate-keys
+    - wg-config
+
+- name: Create WireGuard configuration directory
+  file:
+    dest: "{{ wireguard_remote_directory }}"
+    state: directory
+    mode: 0700
+  tags:
+    - wg-config
+
+- name: (Server) Generate WireGuard configuration file
+  template:
+    src: server/wg.conf
+    dest: "{{ wireguard_remote_directory }}/{{ wireguard_interface }}.conf"
+    owner: "{{ wireguard_conf_owner }}"
+    group: "{{ wireguard_conf_group }}"
+    mode: "{{ wireguard_conf_mode }}"
+    # no_log: '{{ ansible_verbosity < 3 }}'
+  tags:
+    - wg-config
+  notify:
+    - reconfigure wireguard
+
+- name: Start and enable WireGuard service
+  service:
+    name: "wg-quick@{{ wireguard_interface }}"
+    state: "{{ wireguard_service_state }}"
+    enabled: "{{ wireguard_service_enabled }}"

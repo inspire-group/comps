@@ -1,0 +1,25 @@
+---
+
+- name: (Ubuntu) Update APT package cache
+  apt:
+    update_cache: "{{ wireguard_ubuntu_update_cache }}"
+    cache_valid_time: "{{ wireguard_ubuntu_cache_valid_time }}"
+
+- name: (Ubuntu) Ensure WireGuard DKMS package is removed
+  apt:
+    name:
+      - "wireguard-dkms"
+    state: absent
+
+- name: (Ubuntu) Install wireguard package
+  apt:
+    name: "wireguard"
+    state: present
+
+- name: Enable IP forwarding
+  become: yes
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    state: present
+    reload: yes
