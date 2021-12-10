@@ -80,6 +80,11 @@
     wireguard_remote_directory: ./wg_client_generated
 
   tasks:
+    - name: Create wg_client_generated directory
+      file:
+        path: ./wg_client_generated
+        state: directory
+
     - name: Generate confs for wgnet interfaces
       vars:
         # wireguard_client: true
@@ -96,11 +101,12 @@
     - name: Generate conf for comps interface
       vars:
         wireguard_interface: "wg0"
-        wireguard_endpoint: "{{ hostvars[item].inventory_hostname }}:{{ wireguard_port }}"
-        wireguard_public_key: "{{ hostvars[item].wireguard__fact_public_key }}"
-        # wireguard_private_key: "{{ hostvars[item].wireguard_private_key }}"
+        wireguard_address: "{{ wireguard_subnet }}.100"
+        peer_endpoint: "{{ hostvars[item].inventory_hostname }}:{{ wireguard_port }}"
+        peer_public_key: "{{ hostvars[item].wireguard__fact_public_key }}"
+        client_private_key: "{{ wireguard_private_key }}"
       template:
-        src: "client/config.conf"
+        src: "client/wg0.conf"
         dest: "wg_client_generated/wg0.conf"
       with_items:
         "{{ query('inventory_hostnames', 'comp') }}"
