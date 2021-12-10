@@ -26,8 +26,8 @@ wait_timeout: 500
 # Wireguard Network Config #
 ############################
 
-wireguard_subnet: 10.45.0.1/24
-wireguard_client_address: 10.45.0.2/32
+wireguard_subnet: 10.45.0
+wireguard_gateway_address: 10.45.0.2/32
 wireguard_port: 51820
 
 ########################
