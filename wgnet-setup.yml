@@ -1,5 +1,6 @@
 - hosts: localhost
   connection: local
+  become: true
   gather_facts: false
   vars_files:
     - config.cfg
@@ -101,10 +102,8 @@
     - name: Generate conf for comps interface
       vars:
         wireguard_interface: "wg0"
-        wireguard_address: "{{ wireguard_subnet }}.100"
-        peer_endpoint: "{{ hostvars[item].inventory_hostname }}:{{ wireguard_port }}"
-        peer_public_key: "{{ hostvars[item].wireguard__fact_public_key }}"
-        client_private_key: "{{ wireguard_private_key }}"
+        wireguard_endpoint: "{{ hostvars[item].inventory_hostname }}:{{ wireguard_port }}"
+        wireguard_public_key: "{{ hostvars[item].wireguard__fact_public_key }}"
       template:
         src: "client/wg0.conf"
         dest: "wg_client_generated/wg0.conf"
