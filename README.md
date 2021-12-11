@@ -12,12 +12,13 @@ Wireguard:
 │                    │  └───┬────┘   └────────┘ │ wg peer
 │┌────────┐  ┌─────┐─┘  ┌───┴────┐   ┌────────┐ └►┌─────┐
 ││ Client ├─►│ wg0 │───►│ wgnet2 │──►│ wgnet2 │──►│ wg0 │──► Internet
-│└────────┘  └─────┘─┐  └───┬────┘   └────────┘ ┌►└─────┘
-│                    │  ┌───┴────┐   ┌────────┐ │
-│                    └─►│ wgnet3 │──►│ wgnet3 │─┘
-│                       └───┬────┘   └────────┘
+│└───┬┬───┘  └─────┘─┐  └───┬────┘   └────────┘ ┌►└─────┘
+│┌───┴┴───┐          │  ┌───┴────┐   ┌────────┐ │
+││ Chrome │          └─►│ wgnet3 │──►│ wgnet3 │─┘
+│└────────┘             └───┬────┘   └────────┘
 └───────────────────────────┘
 ```
+
 
 Note: PoC setup moved to demos subfolder.
 
@@ -72,8 +73,17 @@ ip -4 route add 0.0.0.0/0 dev wgnet$NEW_INDEX table 51821
 To see what the current default route is for table 51821, you can run `ip route show table 51821`.
 
 ## Collecting data
+The `client/scripts` folder gets mounted into the client Docker container, and can help run various experiments from the host. For instance, 
 
-## Routing details
+```
+echo "https://youtube.com" | docker exec -i wgclient python /comps/fetch_websites.py
+```
+
+will begin migration and instrument a Chromium instance to fetch the homepage of Youtube and return captured pcap traces on every wgnet interface. You can change the parameters to `fetch_websites.py` in order to alter the migration frequency.
+
+The code that collects this data utilizes the bundled [wf-tools](https://github.com/jpcsmith/wf-tools) library for the libraries to capture and dump pcap.
+
+### Routing details
 
 `client/setup.sh` performs most of the heavy lifting for CoMPS routing; details about the implementation can also be found in the file comments.
 
