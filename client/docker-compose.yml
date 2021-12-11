@@ -2,6 +2,17 @@ version: "3.7"
 
 
 services:
+  chrome:
+    image: selenium/standalone-chrome-debug
+    container_name: chrome
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /dev/shm:/dev/shm
+    shm_size: "2g"
+    privileged: true
+    network_mode: "service:wg_client"
+
   wgclient:
     container_name: wgclient
     image: frankpetrilli/boringtun
@@ -12,7 +23,7 @@ services:
     devices:
       - "/dev/net/tun:/dev/net/tun"
     volumes:
-      - ./:/etc/wireguard/
+      - ./generated/:/etc/wireguard/
     environment:
       INTERFACE_NAME: "wg0"
       WG_SUDO: "1"

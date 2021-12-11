@@ -3,3 +3,4 @@ chromium-src/*
 config.cfg
 hosts
 wg_client_generated
+client/generated

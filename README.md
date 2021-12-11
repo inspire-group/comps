@@ -57,7 +57,7 @@ TODO: have ansible run docker-compose up and begin migration automatically
 
 To start a client container connected to the CoMPS network:
 ```
-cd wg_client_generated
+cd client
 docker-compose up
 ```
 
@@ -70,6 +70,8 @@ ip -4 route add 0.0.0.0/0 dev wgnet$NEW_INDEX table 51821
 ```
 
 To see what the current default route is for table 51821, you can run `ip route show table 51821`.
+
+## Collecting data
 
 ## Routing details
 
