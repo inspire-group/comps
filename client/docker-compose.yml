@@ -15,7 +15,7 @@ services:
 
   wgclient:
     container_name: wgclient
-    image: frankpetrilli/boringtun
+    build: .
     cap_add:
       - NET_ADMIN
     expose:
@@ -24,6 +24,7 @@ services:
       - "/dev/net/tun:/dev/net/tun"
     volumes:
       - ./generated/:/etc/wireguard/
+      - ./scripts/:/comps/
     environment:
       INTERFACE_NAME: "wg0"
       WG_SUDO: "1"
