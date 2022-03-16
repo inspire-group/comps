@@ -1,8 +1,8 @@
 # CoMPS
 
 This repository structure:
- * [Test & Performance setup for WireGuard, QUIC, and Mosh](demos/README.md)
- * [CoMPS network setup for data collection](setup/README.md)
+ * [Test & Performance setup for WireGuard, QUIC, and Mosh](demos/)
+ * [CoMPS network setup for data collection](setup/)
 
 Other links:
  * [Evaluation and Simulating data splitting](https://github.com/inspire-group/wf-in-the-age-of-quic)
