@@ -1,0 +1,50 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - config.cfg
+
+  tasks:
+    - name: create wgnet droplets
+      digital_ocean_droplet:
+        unique_name: yes
+        region: "{{ item.region }}"
+        image: ubuntu-20-04-x64
+        wait_timeout: 500
+        name: "{{ item.name }}"
+        size: 1gb
+        oauth_token: "{{ token }}"
+        ssh_keys: [ "{{ ssh_key_id }}" ]
+      register: created_droplets
+      with_items:
+        - "{{ vpns }}"
+
+    - name: add vpns to dynamic inventory
+      add_host:
+        name: "{{ item.data.ip_address }}"
+        group: vpn
+      with_items: "{{ created_droplets.results }}"
+
+    - name: create comps server droplet
+      digital_ocean_droplet:
+        unique_name: yes
+        region: "{{ item.region }}"
+        image: ubuntu-20-04-x64
+        wait_timeout: 500
+        name: "{{ item.name }}"
+        size: 1gb
+        oauth_token: "{{ token }}"
+        ssh_keys: [ "{{ ssh_key_id }}" ] # <---- put your numeric ssh key in here
+      register: created_servers
+      with_items:
+        - "{{ comps }}"
+
+    - name: add client to dynamic inventory
+      add_host:
+        name: "{{ item.data.ip_address }}"
+        group: comps
+      with_items: "{{ created_servers.results }}"
+
+
+

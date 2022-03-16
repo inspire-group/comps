@@ -1,0 +1,48 @@
+---
+
+host_key-checking: false
+
+############################
+# DigitalOcean Credentials #
+############################
+
+# DO API token
+token: $DO_TOKEN
+
+# SSH key ID for login. You can get all your key IDs via:
+# curl -X GET \
+#   -H "Content-Type: application/json" \
+#   -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" \
+#   "https://api.digitalocean.com/v2/account/keys"
+ssh_key_id: $SSH_KEY_ID
+
+#######################
+# DigitalOcean Config #
+#######################
+
+wait_timeout: 500
+
+############################
+# Wireguard Network Config #
+############################
+
+wireguard_subnet: 10.45.0
+wireguard_gateway_address: 10.45.0.2/32
+wireguard_port: 51820
+
+########################
+# CoMPS network config #
+########################
+
+# Note: regions should all be valid DO regions
+vpns:
+ - name: wgnet1
+   region: nyc3
+ - name: wgnet2
+   region: sfo1
+ - name: wgnet3
+   region: fra1
+
+clients:
+ - name: wgclient
+   region: nyc1

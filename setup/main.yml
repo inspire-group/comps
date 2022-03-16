@@ -1,0 +1,7 @@
+---
+- name: Provision wgnet and client servers
+  import_playbook: provision.yml
+
+- name: Install & configure wireguard for comps network
+  import_playbook: wgnet-setup.yml
+

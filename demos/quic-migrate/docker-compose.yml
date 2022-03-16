@@ -64,7 +64,7 @@ services:
 
   wg_client:
     privileged: true
-    build: ./boringtun-docker
+    image: frankpetrilli/boringtun
     container_name: wg_client
     ports:
       - "4444:4444"
