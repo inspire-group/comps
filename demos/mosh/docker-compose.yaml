@@ -1,0 +1,55 @@
+---
+version: "2.1"
+services:
+  server:
+    build: server
+    container_name: mosh-server
+    hostname: mosh-server #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - PUBLIC_KEY_FILE=/client/ssh_keys/id_rsa.pub
+      #- SUDO_ACCESS=false #optional
+      #- PASSWORD_ACCESS=true #optional
+      #- USER_PASSWORD=password #optional
+      #- USER_PASSWORD_FILE=/path/to/file #optional
+      - USER_NAME=user #optional
+    volumes:
+      - ./config:/config
+      - ./client/ssh_keys:/client/ssh_keys
+      - ./server/data:/data
+    ports:
+      - 2222:2222
+    restart: unless-stopped
+    networks:
+      - moshnet1
+      - moshnet2
+      - moshnet
+  client:
+    build: client
+    command: ./setup.sh
+    privileged: true
+    networks:
+      - moshnet1
+      - moshnet2
+
+networks:
+  moshnet:
+    name: moshnet
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.6.0.0/16
+  moshnet1:
+    name: moshnet1
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.2.0.0/16
+  moshnet2:
+    name: moshnet2
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.4.0.0/16
