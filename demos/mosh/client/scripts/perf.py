@@ -5,7 +5,7 @@ from migrator import MigratorThread
 n_repeats = 10
 SERVER_URL = "http://server/file?size="
 SIZES = [1000]
-FREQS = [0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.5, 10000000000]
+FREQS = [0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.5]#, 1000000]
 FREQS.reverse()
 
 
@@ -26,6 +26,8 @@ with open("results.txt", "w") as f:
     migrator.start()
     try:
       results = cat_n_times()
+      f.write("Frequency: " + str(freq) + "\n")
       f.write(str(results) + "\n")
+      f.flush()
     finally:
       migrator.join()

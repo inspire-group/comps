@@ -59,7 +59,7 @@ We bind-mount Chromium source into the Docker volume instead of building it in o
 
 Then, you can run 
 ```
-docker-compose up
+docker-compose build && docker-compose up
 ```
 to bring up the network. The first run will take a little bit of time as the server and client containers should attempt to build the quic binaries from the chromium source.
 

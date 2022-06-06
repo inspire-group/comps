@@ -1,36 +1,69 @@
-version: "3.7"
-
+version: '3.7'
 services:
-  wgclient:
+
+  chrome:
+    image: selenium/standalone-chrome-debug
+    container_name: chrome
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /dev/shm:/dev/shm
+    shm_size: "2g"
     privileged: true
-    container_name: wgclient
-    image: frankpetrilli/boringtun
+    network_mode: "service:wg_client"
+
+  server:
+    container_name: server
+    build: server/app
+    expose:
+      - 80
+    networks:
+      - server_network
+    volumes:
+      - ./server/data:/data
+    depends_on:
+      - wg
+
+  wg:
+    privileged: true
+    build: client
+    container_name: wg
     cap_add:
       - NET_ADMIN
     expose:
-      - 587/udp
+      - 1194/udp
     devices:
       - "/dev/net/tun:/dev/net/tun"
     volumes:
-      - ./wg_client:/etc/wireguard/
+      - ./wg:/etc/wireguard/
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "400k"
+        max-file: "20"
     environment:
-      INTERFACE_NAME: "wg1"
+      INTERFACE_NAME: "wg"
       WG_SUDO: "1"
       WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
     entrypoint: /bin/bash
-    command: -c "/etc/wireguard/setup.sh && sleep infinity"
-  wgnet1:
+    command: -c "wg-quick up /etc/wireguard/wg.conf && sleep infinity"
+    networks:
+      - net1
+      - net2
+      - server_network
+
+  wg_client:
     privileged: true
-    image: frankpetrilli/boringtun
-    container_name: wgnet1
+    build: client
+    container_name: wg_client
     cap_add:
       - NET_ADMIN
     expose:
-      - 587/udp
+      - 1194/udp
     devices:
       - "/dev/net/tun:/dev/net/tun"
     volumes:
-      - ./wgnet1:/etc/wireguard/
+      - ./client:/etc/wireguard/
     logging:
       driver: "json-file"
       options:
@@ -40,54 +73,36 @@ services:
       INTERFACE_NAME: "wg0"
       WG_SUDO: "1"
       WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
+    ports:
+      - "4444:4444"
+      - "9090:7900"
+      - "9000:5900"
     entrypoint: /bin/bash
-    command: -c "wg-quick up wg1 && sleep infinity"
+    command: -c "/comps/setup.sh"
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    extra_hosts:
+      server: 10.3.0.3
+    networks:
+      - net1
+      - net2
 
-  wgnet2:
-    privileged: true
-    image: frankpetrilli/boringtun
-    container_name: wgnet2
-    cap_add:
-      - NET_ADMIN
-    expose:
-      - 587/udp
-    devices:
-      - "/dev/net/tun:/dev/net/tun"
-    volumes:
-      - ./wgnet2:/etc/wireguard/
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "400k"
-        max-file: "20"
-    environment:
-      INTERFACE_NAME: "wg0"
-      WG_SUDO: "1"
-      WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
-    entrypoint: /bin/bash
-    command: -c "wg-quick up wg2 && sleep infinity"
-
-  wgserver:
-    privileged: true
-    image: frankpetrilli/boringtun
-    container_name: wgserver
-    cap_add:
-      - NET_ADMIN
-    expose:
-      - 587/udp
-    devices:
-      - "/dev/net/tun:/dev/net/tun"
-    volumes:
-      - ./wg0:/etc/wireguard/
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "400k"
-        max-file: "20"
-    environment:
-      INTERFACE_NAME: "wg0"
-      WG_SUDO: "1"
-      WG_QUICK_USERSPACE_IMPLEMENTATION: "/app/boringtun"
-    entrypoint: /bin/bash
-    command: -c "wg-quick up wg0 && sleep infinity"
-
+networks:
+  net2:
+    name: net2
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.1.0.0/16
+  server_network:
+    name: server_network
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.3.0.0/16
+  net1:
+    name: net1
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.5.0.0/16

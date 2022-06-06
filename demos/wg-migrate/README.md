@@ -1,56 +1,64 @@
-# wg-migrate demo
-
-## How does it work?
-```
- CoMPS client
-┌───────────────────────────┐        wg proxies
-│                       ┌───┴────┐   ┌────────┐
-│                    ┌─►│ wgnet1 │──►│ wgnet1 │─┐
-│                    │  └───┬────┘   └────────┘ │  also a wg proxy
-│┌────────┐  ┌─────┐─┘      │                   └►┌─────┐
-││ Client ├─►│ wg0 │        │                     │ wg0 │──►Internet
-│└────────┘  └─────┘─┐      │                   ┌►└─────┘
-│                    │  ┌───┴────┐   ┌────────┐ │
-│                    └─►│ wgnet2 │──►│ wgnet2 │─┘
-│                       └───┬────┘   └────────┘
-└───────────────────────────┘
-```
-
-This PoC demo involves double-tunnelling Wireguard; the wgnet proxies are responsible for providing an overlay network to simulate a multi-homed environment. The wg0 interface on the client alternates between sending and receiving traffic across the two wgnet interfaces.
-
-Essentially, the docker-compose file orchestrates 4 machines: CoMPS client, 2 wgnet proxies, and the CoMPS "server" (wg0 proxy)
-
-wgnet1, wgnet2, and wg0 containers use default `wg-quick` utility. However, we customize the routing rules in the comps client to enable double-tunneling and migration.
-
-It is also possible to deploy wgnet1, wgnet2, and wg0 Wireguard proxies on separate machines, rather than in local containers, so long as they are configured with the appropriate public/private keys.
-
-Similarly to the QUIC PoC demo, we can attach Selenium to a Chromium container, then specify the container to use the same network namespace as our CoMPS client so all of the browser traffic goes through the PoC CoMPS network.
-
-
 ## Build
 
 Dependencies:
  * docker-compose v1.27.4
- * wireguard v1.0.2 
-   * Your machine needs wireguard kernel module even if you are running wireguard in Docker
 
+```
+# Generate {1M, 10M, 100M, 1G} test files for server.
+cd server/data && bash gen.sh && cd ../..
 
-Simply run `docker-compose up` to bring up the network.
+# Build and deploy docker network.
+docker-compose build && docker-compose up
+```
 
-### Testing migration
-The script for regularly alternating network paths should be mounted in the `wg_client` container at `/etc/wireguard/migrate.sh`. It takes just one argument-- the amount of time to sleep between migrations.
+## Manual demo with Webdriver and VNC
+(This is the setup for the HotPETS demo)
+For the full demo, you will also need to install:
+ * python3 
+ * pip
+ * selenium python package
+ * a VNC client like [VNC Viewer](https://www.realvnc.com/en/connect/download/viewer/linux/)
 
-For instance, run `/etc/wireguard/migrate.sh 0.1 &` to switch network interfaces every 100ms (or 0.1s).
+For instance, on a Debian-based distribution, you might install these via:
+```
+apt install python3 python3-pip
+pip3 install selenium
+```
 
+### Watching packets flow through either path
+To watch packets flow through each particular path for this demo, you can run
+```
+docker exec -it wg tcpdump -i eth0
+docker exec -it wg tcpdump -i eth1
+```
+each in different windows.
 
-### Testing a headless browser
-After running dc up, a remote webdriver instance that supports QUIC traffic should be opened on your host machine at port 4444. You can run `selenium/open_website.py www.google.com` for instance in order to fetch the remote page for `https://www.google.com` (or any other QUIC-supporting website), or run your own selenium code and capture the relevant traces on wg_client, wg1, or wg2.
+Then, you can start migration by running
+```
+docker exec -it wg_client bash migrate-simple.sh 0.1
+```
 
+And then finally, in yet another window, run the test:
+```
+docker exec -it wg_client bash test.sh
+```
+You should see packets bounce between the two interfaces above.
 
+### OpenVNC and driving a chrome browser
 
+Instead of fetching from a toy server as is done in test.sh, can also bind to a Chrome instance running in the `chrome` container and shares the same network namespace as the wg client, and simulate a real web request. This `chrome` container is also running a VNC server, which you can connect to for demo purposes.
 
+1. Open your VNC client and connect to server running on `127.0.0.1:9000` with password `secret`.
+2. Run `python3 selenium/open_website https://google.com`
 
+Google should open on the browser visible via VNC, and you can freely browse until the Python script exits. If you have the above `tcpdump` and path migration commands running, you should also be able to see the traffic bouncing between the two interfaces.
 
+## Run tests automatically
+You can also run performance tests with:
 
+```
+docker exec -t wg_client python3 /scripts/perf.py
+```
 
+Which should then print the results of your performance testing. To change the size of the file being sent over the network, or the switching frequency, you can change the parameters at the top of `client/scripts/perf.py` and rebuild the Docker container via `docker-compose build`.
 

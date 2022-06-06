@@ -18,10 +18,10 @@ Wireguard:
 └───────────────────────────┘
 ```
 
+In our data collection experiment, we provision DO servers from various regions in order to realistically simulate asymmetric network latency across different paths. Other than the automatic provisioning of a variable number of DO servers as proxies, the setup here is very similar to that found in the `/demos/wg-migrate` folder.
+
 Dependencies:
  * ansible v2.9.6
- * wireguard v1.0.2 
-   * Your machine needs wireguard kernel module even if you are running wireguard in Docker
  * docker-compose v1.27.4
 
 Steps
