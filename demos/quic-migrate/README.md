@@ -1,63 +1,41 @@
 # quic-migrate
-Exploring intentional connection migration over quic
+Exploring intentional connection migration over QUIC
+
+#### Note from June 2022
+Note that this demo was developed largely in 2019-2020. At that point in time, no QUIC client libraries supported automatic connection migration; however, Chromium's QUIC library had connection migration support, even if the toy server and client did not support automatic connection migration. The reason this demo is very involved is because it involves building a patch into Chromium's toy client and server to support (theoretically optimal) automatic connection migration. This is adapted from patches from prior work in MIMIQ, which is linked below as well.
+
+As of late 2021, after the large part of this work had already been done, the toy server and client now support automatic connection migration natively, so it is likely that the patching steps below are no longer necessary. However, our team has not yet tested this with the code we use below to perform the QUIC migration demo.
 
 ## Build
 
 Dependencies:
+ * bash
  * git
  * docker-compose v1.27.4
- * wireguard v1.0.2 
-   * Your machine needs wireguard kernel module even if you are running wireguard in Docker
+ * all dependencies from [Chromium Build for Linux](https://chromium.googlesource.com/chromium/src/+/main/docs/linux/build_instructions.md)
 
-```
-git submodule update --init --recursive
-docker-compose build
-```
+Most notably, even though we are not building the entire Chromium browser (just the QUIC binaries), we still need to download the entire source in order to patch it properly. On our machines, we had approximately 50 GB of free disk space to do this with.
 
-The next large step is to build the Chromium source with modified QUIC client, since their default toy client [does not support connection migration](https://bugs.chromium.org/p/chromium/issues/detail?id=1104647). The following steps are adapted from the build and experiment instructions from MIMIQ ([paper](https://www.usenix.org/system/files/foci20-paper-govil.pdf), [code](https://github.com/liangw89/p4privacy/blob/master/mimiq/walkthrough)).
-
-Note that this step requires a large amount of disk space due to the size of the Chromium git repository. However, the build process is not too long since we are only building `quiche` (their QUIC library) tooling.
-
-```
-# 1. Download Chromium source & history
-git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git chromium-src/depot_tools
-export PATH="$PATH:$(pwd)/chromium-src/depot_tools"
-cd chromium-src/
-fetch --nohooks chromium # will take a lot of time depending on network
-./build/install-build-deps.sh
-gclient runhooks
-
-# 2. Fetching & building tags
-gclient sync --with_branch_heads --with_tags
-git fetch --tags
-git checkout tags/79.0.3934.0
-
-# 2a. (optional) check to see normal build works
-gn gen out/Debug
-ninja -C out/Debug quic_server quic_client
-
-# 3. Apply patches
-cd net/third_party/quiche
-git stash apply -p ../../../../quiche.patch
-cd ../../..
-
-# 4. Build
-gn gen out/Debug
-ninja -C out/Debug quic_server quic_client
-
-# 5. Export Chromium source path for Docker
-export CHROMIUM_SRC_DIR="$(pwd)/src"
-cd ..
-```
+This demo and code setup is the most involved. If you are curious why, see the "Why the Chromium QUIC server/client?" section at the end. In this project, we patch and build Chromium libraries *outside* the context of a Docker container (since the source is so large) and on the host device.
 
 We consulted these tutorials extensively for the above process, if you run into any trouble:
  * [Chromium Build for Linux](https://chromium.googlesource.com/chromium/src/+/main/docs/linux/build_instructions.md)
  * [Building Old Revisions](https://chromium.googlesource.com/chromium/src/+/master/docs/building_old_revisions.md)
  * [Working with Release Branches](https://www.chromium.org/developers/how-tos/get-the-code/working-with-release-branches/)
 
-We bind-mount Chromium source into the Docker volume instead of building it in one, since the source is so large. We expect $CHROMIUM_SRC_DIR to be set when running `docker-compose`.
+### Patching and building Chromium toy server and client
 
-Then, you can run 
+To build the Chromium source with modified QUIC client, since their default toy client [does not support connection migration](https://bugs.chromium.org/p/chromium/issues/detail?id=1104647). The following steps are adapted from the build and experiment instructions from MIMIQ ([paper](https://www.usenix.org/system/files/foci20-paper-govil.pdf), [code](https://github.com/liangw89/p4privacy/blob/master/mimiq/walkthrough)).
+
+Note that this step requires a large amount of disk space due to the size of the Chromium git repository. However, the build process is not too long since we are only building `quiche` (their QUIC library) tooling.
+
+To download and apply the patches, run:
+
+```
+./chromium-setup.sh
+```
+
+Then once `$CHROMIUM_SRC_DIR` is set, you can run 
 ```
 docker-compose build && docker-compose up
 ```
